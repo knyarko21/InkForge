@@ -1,5 +1,6 @@
 
 const { Sequelize } = require("sequelize");
+const mysql2 = require("mysql2");
 require("dotenv").config();
 
 const sequelize = new Sequelize(
@@ -10,6 +11,10 @@ const sequelize = new Sequelize(
     host: process.env.DB_HOST,
     port: process.env.DB_PORT,
     dialect: "mysql",
+
+    // Explicitly provide mysql2 so Vercel bundles it
+    dialectModule: mysql2,
+
     logging: false
   }
 );
