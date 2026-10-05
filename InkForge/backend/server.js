@@ -1,9 +1,7 @@
 
-
 const express = require("express");
 const cors = require("cors");
 const path = require("path");
-
 require("dotenv").config();
 
 const sequelize = require("./config/db");
@@ -18,13 +16,29 @@ const postRoutes = require("./routes/postRoutes");
 const commentRoutes = require("./routes/commentRoutes");
 
 const app = express();
+
 const PORT = process.env.PORT || 5000;
 
+// ===============================
 // Middleware
+// ===============================
+
 app.use(cors());
 app.use(express.json());
 
-// Connect to the database and synchronize models
+// ===============================
+// Static media
+// ===============================
+
+app.use(
+  "/uploads",
+  express.static(path.join(__dirname, "uploads"))
+);
+
+// ===============================
+// Database
+// ===============================
+
 const databaseReady = sequelize
   .authenticate()
   .then(() => sequelize.sync())
@@ -32,11 +46,15 @@ const databaseReady = sequelize
     console.log("Database synchronized successfully");
   })
   .catch((error) => {
-    console.error("Database initialization failed:", error.message);
+    console.error(
+      "Database initialization failed:",
+      error.message
+    );
+
     throw error;
   });
 
-// Wait for the database before processing API requests
+// Wait for the database before processing requests
 app.use(async (req, res, next) => {
   try {
     await databaseReady;
@@ -48,13 +66,10 @@ app.use(async (req, res, next) => {
   }
 });
 
-// Static media
-app.use(
-  "/uploads",
-  express.static(path.join(__dirname, "uploads"))
-);
-
+// ===============================
 // Routes
+// ===============================
+
 app.get("/", (req, res) => {
   res.json({
     message: "Welcome to InkForge API"
@@ -66,12 +81,17 @@ app.use("/api/users", userRoutes);
 app.use("/api/posts", postRoutes);
 app.use("/api", commentRoutes);
 
-// Start the server locally only
+// ===============================
+// Start server locally
+// ===============================
+
 if (require.main === module) {
   databaseReady
     .then(() => {
       app.listen(PORT, () => {
-        console.log(`InkForge server running on port ${PORT}`);
+        console.log(
+          `InkForge server running on port ${PORT}`
+        );
       });
     })
     .catch(() => {
@@ -79,5 +99,8 @@ if (require.main === module) {
     });
 }
 
-// Export the Express app for Vercel
+// ===============================
+// Export app for Vercel
+// ===============================
+
 module.exports = app;
